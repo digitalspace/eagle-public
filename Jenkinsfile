@@ -51,6 +51,35 @@ def getChangeLog(pastBuilds) {
   return log;
 }
 
+def nodejsTester () {
+  openshift.withCluster() {
+    openshift.withProject() {
+      podTemplate(label: 'node-tester', name: 'node-tester', serviceAccount: 'jenkins', cloud: 'openshift', containers: [
+        containerTemplate(
+          name: 'jnlp',
+          image: 'registry.access.redhat.com/openshift3/jenkins-agent-nodejs-8-rhel7',
+          resourceRequestCpu: '500m',
+          resourceLimitCpu: '800m',
+          resourceRequestMemory: '2Gi',
+          resourceLimitMemory: '4Gi',
+          workingDir: '/tmp',
+          command: '',
+        )
+      ]) {
+        node("node-tester") {
+          checkout scm
+          try {
+            sh 'npm run tests'
+          } finally {
+            echo "Unit Tests Passed"
+          }
+        }
+      }
+      return true
+    }
+  }
+}
+
 // todo templates can be pulled from a repository, instead of declared here
 def nodejsLinter () {
   openshift.withCluster() {
@@ -73,11 +102,8 @@ def nodejsLinter () {
           checkout scm
           try {
             // install deps to get angular-cli
-            sh '''
-              cp lint-package.json package.json
-              npm install
-              npm run lint
-            '''
+            sh 'npm install @angular/compiler @angular/core @angular/cli @angular-devkit/build-angular codelyzer rxjs tslint'
+            sh 'npm run lint'
           } finally {
             echo "Linting Passed"
           }
@@ -114,37 +140,8 @@ def nodejsSonarqube () {
 
               sh "npm install typescript && ./gradlew sonarqube -Dsonar.host.url=${SONARQUBE_URL} -Dsonar.verbose=true --stacktrace --info"
             } finally {
-              echo "Scan complete"
+              echo "Scan Complete"
             }
-          }
-        }
-      }
-      return true
-    }
-  }
-}
-
-def nodejsTester () {
-  openshift.withCluster() {
-    openshift.withProject() {
-      podTemplate(label: 'node-tester', name: 'node-tester', serviceAccount: 'jenkins', cloud: 'openshift', containers: [
-        containerTemplate(
-          name: 'jnlp',
-          image: 'registry.access.redhat.com/openshift3/jenkins-agent-nodejs-8-rhel7',
-          resourceRequestCpu: '500m',
-          resourceLimitCpu: '800m',
-          resourceRequestMemory: '2Gi',
-          resourceLimitMemory: '4Gi',
-          workingDir: '/tmp',
-          command: '',
-        )
-      ]) {
-        node("node-tester") {
-          checkout scm
-          try {
-            sh 'npm run tests'
-          } finally {
-            echo "Unit Tests Passed"
           }
         }
       }
@@ -156,100 +153,81 @@ def nodejsTester () {
 def CHANGELOG = "No new changes"
 def IMAGE_HASH = "latest"
 
-
-
-
 pipeline {
   agent any
   options {
     disableResume()
   }
   stages {
+    stage('Parallel Stage') {
+      failFast true
+      parallel {
+        stage('Build') {
+          agent any
+          steps {
+            script {
+              pastBuilds = []
+              buildsSinceLastSuccess(pastBuilds, currentBuild);
+              CHANGELOG = getChangeLog(pastBuilds);
 
-    stage('Linting') {
-      steps {
-        script {
-          echo "Running linter"
-          def result = nodejsLinter()
+              echo ">>>>>>Changelog: \n ${CHANGELOG}"
+
+              try {
+                ROCKET_DEPLOY_WEBHOOK = sh(returnStdout: true, script: 'cat /var/rocket/rocket-deploy-webhook')
+                ROCKET_QA_WEBHOOK = sh(returnStdout: true, script: 'cat /var/rocket/rocket-qa-webhook')
+
+                echo "Building eagle-public develop branch"
+                openshiftBuild bldCfg: 'eagle-public-angular', showBuildLogs: 'true'
+                openshiftBuild bldCfg: 'eagle-public-build', showBuildLogs: 'true'
+                echo "Build done"
+
+                echo ">>> Get Image Hash"
+                // Don't tag with BUILD_ID so the pruner can do it's job; it won't delete tagged images.
+                // Tag the images for deployment based on the image's hash
+                IMAGE_HASH = sh (
+                  script: """oc get istag eagle-public:latest -o template --template=\"{{.image.dockerImageReference}}\"|awk -F \":\" \'{print \$3}\'""",
+                  returnStdout: true).trim()
+                echo ">> IMAGE_HASH: ${IMAGE_HASH}"
+              } catch (error) {
+                notifyRocketChat(
+                  "@all The latest build of eagle-public seems to be broken. \n Error: \n ${error}",
+                  ROCKET_QA_WEBHOOK
+                )
+                throw error
+              }
+            }
+          }
         }
-      }
-    }
 
-    // stage('Unit Tests') {
-    //   agent { node { label 'nodejs' }}
-    //   steps {
-    //     script {
-    //       echo "Placeholder - Running unit-tests"
-    //       def result = nodejsTester()
-    //     }
-    //   }
-    // }
+        // stage('Unit Tests') {
+        //   agent { node { label 'nodejs' }}
+        //   steps {
+        //     script {
+        //       echo "Placeholder - Running unit-tests"
+              // def result = nodejsTester()
+        //     }
+        //   }
+        // }
 
-    stage('Build') {
-      agent any
-      steps {
-        script {
-          pastBuilds = []
-          buildsSinceLastSuccess(pastBuilds, currentBuild);
-          CHANGELOG = getChangeLog(pastBuilds);
+        stage('Linting') {
+          steps {
+            script {
+              echo "Running linter"
+              def result = nodejsLinter()
+            }
+          }
+        }
 
-          echo ">>>>>>Changelog: \n ${CHANGELOG}"
-
-          try {
-            sh("oc extract secret/rocket-chat-secrets --to=${env.WORKSPACE} --confirm")
-            ROCKET_DEPLOY_WEBHOOK = sh(returnStdout: true, script: 'cat rocket-deploy-webhook')
-            ROCKET_QA_WEBHOOK = sh(returnStdout: true, script: 'cat rocket-qa-webhook')
-
-            echo "Building eagle-public develop branch"
-            openshiftBuild bldCfg: 'eagle-public-angular', showBuildLogs: 'true'
-            openshiftBuild bldCfg: 'eagle-public-build', showBuildLogs: 'true'
-            echo "Build done"
-
-            echo ">>> Get Image Hash"
-            // Don't tag with BUILD_ID so the pruner can do it's job; it won't delete tagged images.
-            // Tag the images for deployment based on the image's hash
-            IMAGE_HASH = sh (
-              script: """oc get istag eagle-public:latest -o template --template=\"{{.image.dockerImageReference}}\"|awk -F \":\" \'{print \$3}\'""",
-              returnStdout: true).trim()
-            echo ">> IMAGE_HASH: ${IMAGE_HASH}"
-          } catch (error) {
-            // notifyRocketChat(
-            //   "@all The latest build of eagle-public seems to be broken. \n Error: \n ${error}",
-            //   ROCKET_QA_WEBHOOK
-            // )
-            throw error
+        stage('Sonarqube') {
+          steps {
+            script {
+              echo "Running Sonarqube"
+              def result = nodejsSonarqube()
+            }
           }
         }
       }
     }
-
-    stage('Sonarqube') {
-      steps {
-        script {
-          echo "Running Sonarqube"
-          def result = nodejsSonarqube()
-        }
-      }
-    }
-
-    // stage('exeucte sonar') {
-    //   steps {
-    //     script {
-    //       checkout scm
-    //       echo "sonar placeholder"
-    //       dir('sonar-runner') {
-    //         try {
-    //           sh("oc extract secret/sonarqube-secrets --to=${env.WORKSPACE}/sonar-runner --confirm")
-    //           SONARQUBE_URL = sh(returnStdout: true, script: 'cat sonarqube-route-url')
-
-    //           sh "./gradlew sonarqube -Dsonar.host.url=${SONARQUBE_URL} -Dsonar.verbose=true --stacktrace --info"
-    //         } finally {
-    //           echo "Scan complete"
-    //         }
-    //       }
-    //     }
-    //   }
-    // }
 
     stage('Deploy to dev'){
       agent any
@@ -263,19 +241,19 @@ pipeline {
             openshiftVerifyDeployment depCfg: 'eagle-public', namespace: 'mem-mmti-prod', replicaCount: 1, verbose: 'false', verifyReplicaCount: 'false', waitTime: 600000
             echo ">>>> Deployment Complete"
 
-            // notifyRocketChat(
-            //   "@all A new version of eagle-public is now in Dev. \n Changes: \n ${CHANGELOG}",
-            //   ROCKET_DEPLOY_WEBHOOK
-            // )
-            // notifyRocketChat(
-            //   "@all A new version of eagle-public is now in Dev and ready for QA. \n Changes to Dev: \n ${CHANGELOG}",
-            //   ROCKET_QA_WEBHOOK
-            // )
+            notifyRocketChat(
+              "@all A new version of eagle-public is now in Dev. \n Changes: \n ${CHANGELOG}",
+              ROCKET_DEPLOY_WEBHOOK
+            )
+            notifyRocketChat(
+              "@all A new version of eagle-public is now in Dev and ready for QA. \n Changes to Dev: \n ${CHANGELOG}",
+              ROCKET_QA_WEBHOOK
+            )
           } catch (error) {
-            // notifyRocketChat(
-            //   "@all The latest deployment of eagle-public to Dev seems to have failed\n Error: \n ${error}",
-            //   ROCKET_DEPLOY_WEBHOOK
-            // )
+            notifyRocketChat(
+              "@all The latest deployment of eagle-public to Dev seems to have failed\n Error: \n ${error}",
+              ROCKET_DEPLOY_WEBHOOK
+            )
             currentBuild.result = "FAILURE"
             throw new Exception("Deploy failed")
           }
