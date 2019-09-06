@@ -50,3 +50,8 @@ Thumbs.db
 /developer_install_prerequisites.sh
 /project_installer.sh
 /setup_helper.sh
+
+# BDDTests
+.gradle
+.env
+
