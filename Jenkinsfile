@@ -150,6 +150,36 @@ def nodejsSonarqube () {
   }
 }
 
+def bddBrowserStack() {
+    openshift.withCluster() {
+    openshift.withProject() {
+      podTemplate(label: 'bdd-browserstack', name: 'bdd-browserstack', serviceAccount: 'jenkins', cloud: 'openshift', containers: [
+        containerTemplate(
+          name: 'jnlp',
+          image: 'registry.access.redhat.com/openshift3/jenkins-slave-maven-rhel7:v3.9',
+          resourceRequestCpu: '500m',
+          resourceLimitCpu: '1000m',
+          resourceRequestMemory: '1Gi',
+          resourceLimitMemory: '2Gi',
+          workingDir: '/tmp',
+          command: '',
+          args: '${computer.jnlpmac} ${computer.name}',
+        )
+      ]) {
+        node('bdd-browserstack') {
+          checkout scm
+          dir('functional-tests') {
+            try {
+              // todo add env file for test users?
+              withCredentials([usernamePassword(credentialsId: 'browserstack', usernameVariable: 'BROWSERSTACK_USERNAME', passwordVariable: 'BROWSERSTACK_TOKEN')]) {
+                echo "Starting Functional Tests"
+              }
+            }
+          }
+        }
+}
+
+
 def CHANGELOG = "No new changes"
 def IMAGE_HASH = "latest"
 
