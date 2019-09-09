@@ -314,9 +314,11 @@ pipeline {
 
     stage('BDD Tests') {
       steps{
-        echo "Runnning BDD Tests"
-        echo "Build: ${BUILD_ID}"
-        def result = bddBrowserStack()
+        script {
+          echo "Runnning BDD Tests"
+          echo "Build: ${BUILD_ID}"
+          def result = bddBrowserStack()
+        }
       }
     }
   }
