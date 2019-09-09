@@ -50,7 +50,7 @@ environments {
       caps.setCapability("os_version", "10")
       caps.setCapability("resolution", "1920x1200")
       caps.setCapability("name", "Automated Test")
-      caps.setCapability("project", "TFRS")
+      caps.setCapability("project", "EPIC Public")
       caps.setCapability("build", "${buildId}:Firefox")
 
       String URL = "https://" + USERNAME + ":" + AUTOMATE_KEY + "@hub-cloud.browserstack.com/wd/hub"
@@ -69,7 +69,7 @@ environments {
       caps.setCapability("os_version", "10")
       caps.setCapability("resolution", "1920x1200")
       caps.setCapability("name", "Automated Test")
-      caps.setCapability("project", "TFRS")
+      caps.setCapability("project", "EPIC Public")
       caps.setCapability("build", "${buildId}:Edge")
 
       String URL = "https://" + USERNAME + ":" + AUTOMATE_KEY + "@hub-cloud.browserstack.com/wd/hub"
@@ -89,7 +89,7 @@ environments {
       caps.setCapability("os_version", "10")
       caps.setCapability("resolution", "1920x1200")
       caps.setCapability("name", "Automated Test")
-      caps.setCapability("project", "TFRS")
+      caps.setCapability("project", "EPIC Public")
       caps.setCapability("build", "${buildId}:Chrome")
 
       String URL = "https://" + USERNAME + ":" + AUTOMATE_KEY + "@hub-cloud.browserstack.com/wd/hub"
