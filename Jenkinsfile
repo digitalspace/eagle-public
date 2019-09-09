@@ -220,10 +220,10 @@ pipeline {
                   returnStdout: true).trim()
                 echo ">> IMAGE_HASH: ${IMAGE_HASH}"
               } catch (error) {
-                notifyRocketChat(
-                  "@all The latest build of eagle-public seems to be broken. \n Error: \n ${error}",
-                  ROCKET_QA_WEBHOOK
-                )
+                // notifyRocketChat(
+                //   "@all The latest build of eagle-public seems to be broken. \n Error: \n ${error}",
+                //   ROCKET_QA_WEBHOOK
+                // )
                 throw error
               }
             }
@@ -272,19 +272,19 @@ pipeline {
             openshiftVerifyDeployment depCfg: 'eagle-public', namespace: 'mem-mmti-prod', replicaCount: 1, verbose: 'false', verifyReplicaCount: 'false', waitTime: 600000
             echo ">>>> Deployment Complete"
 
-            notifyRocketChat(
-              "@all A new version of eagle-public is now in Dev. \n Changes: \n ${CHANGELOG}",
-              ROCKET_DEPLOY_WEBHOOK
-            )
-            notifyRocketChat(
-              "@all A new version of eagle-public is now in Dev and ready for QA. \n Changes to Dev: \n ${CHANGELOG}",
-              ROCKET_QA_WEBHOOK
-            )
+            // notifyRocketChat(
+            //   "@all A new version of eagle-public is now in Dev. \n Changes: \n ${CHANGELOG}",
+            //   ROCKET_DEPLOY_WEBHOOK
+            // )
+            // notifyRocketChat(
+            //   "@all A new version of eagle-public is now in Dev and ready for QA. \n Changes to Dev: \n ${CHANGELOG}",
+            //   ROCKET_QA_WEBHOOK
+            // )
           } catch (error) {
-            notifyRocketChat(
-              "@all The latest deployment of eagle-public to Dev seems to have failed\n Error: \n ${error}",
-              ROCKET_DEPLOY_WEBHOOK
-            )
+            // notifyRocketChat(
+            //   "@all The latest deployment of eagle-public to Dev seems to have failed\n Error: \n ${error}",
+            //   ROCKET_DEPLOY_WEBHOOK
+            // )
             currentBuild.result = "FAILURE"
             throw new Exception("Deploy failed")
           }
