@@ -313,7 +313,6 @@ pipeline {
     // }
 
     stage('BDD Tests') {
-      agent { label: bddPodLabel }
       steps{
         echo "Runnning BDD Tests"
         echo "Build: ${BUILD_ID}"
