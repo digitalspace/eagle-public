@@ -151,7 +151,7 @@ def nodejsSonarqube () {
 }
 
 def bddBrowserStack() {
-    openshift.withCluster() {
+  openshift.withCluster() {
     openshift.withProject() {
       podTemplate(label: 'bdd-browserstack', name: 'bdd-browserstack', serviceAccount: 'jenkins', cloud: 'openshift', containers: [
         containerTemplate(
@@ -177,6 +177,9 @@ def bddBrowserStack() {
             }
           }
         }
+      }
+    }
+  }
 }
 
 
