@@ -174,6 +174,8 @@ def bddBrowserStack() {
               sh("oc extract secret/bdd-browserstack --to=${env.WORKSPACE} --confirm")
               echo "Starting Functional Tests"
               sh './gradlew remoteChromeTest'
+            } catch (error) {
+              throw error
             }
           }
         }
