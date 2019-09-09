@@ -171,9 +171,9 @@ def bddBrowserStack() {
           dir('functional-tests') {
             try {
               // todo add env file for test users?
-              withCredentials([usernamePassword(credentialsId: 'browserstack', usernameVariable: 'BROWSERSTACK_USERNAME', passwordVariable: 'BROWSERSTACK_TOKEN')]) {
-                echo "Starting Functional Tests"
-              }
+              sh("oc extract secret/bdd-browserstack --to=${env.WORKSPACE} --confirm")
+              echo "Starting Functional Tests"
+              sh './gradlew remoteChromeTest'
             }
           }
         }
@@ -240,23 +240,23 @@ pipeline {
         //   }
         // }
 
-        stage('Linting') {
-          steps {
-            script {
-              echo "Running linter"
-              def result = nodejsLinter()
-            }
-          }
-        }
+        // stage('Linting') {
+        //   steps {
+        //     script {
+        //       echo "Running linter"
+        //       def result = nodejsLinter()
+        //     }
+        //   }
+        // }
 
-        stage('Sonarqube') {
-          steps {
-            script {
-              echo "Running Sonarqube"
-              def result = nodejsSonarqube()
-            }
-          }
-        }
+        // stage('Sonarqube') {
+        //   steps {
+        //     script {
+        //       echo "Running Sonarqube"
+        //       def result = nodejsSonarqube()
+        //     }
+        //   }
+        // }
       }
     }
 
@@ -307,14 +307,13 @@ pipeline {
       // }
     // }
 
-    // stage('BDD Tests') {
-    //   agent { label: bddPodLabel }
-      // steps{
-      //   echo "BDD placeholder"
-      //   echo "Build: ${BUILD_ID}"
-        // checkout scm
-        // todo determine how to call improved BDD Stack
-      // }
-    // }
+    stage('BDD Tests') {
+      agent { label: bddPodLabel }
+      steps{
+        echo "Runnning BDD Tests"
+        echo "Build: ${BUILD_ID}"
+        def result = bddBrowserStack()
+      }
+    }
   }
 }
