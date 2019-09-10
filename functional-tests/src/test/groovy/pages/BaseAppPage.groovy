@@ -2,9 +2,8 @@ package pages
 
 import geb.Page
 
-import pages.traits.Utils
-
 import modules.HeaderModule
+import modules.ModalModule
 import modules.FooterModule
 
 /**
@@ -12,9 +11,10 @@ import modules.FooterModule
  *
  * All pages should extend this page.
  */
-class BaseAppPage extends Page implements Utils {
+class BaseAppPage extends Page {
   static content = {
     headerModule { module(HeaderModule) }
+    modalModule { module(ModalModule) }
     footerModule { module(FooterModule) }
   }
 }

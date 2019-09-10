@@ -1,6 +1,7 @@
 package specs
 
 import pages.HomePage
+import pages.WelcomePage
 
 import spock.lang.Title
 import spock.lang.Stepwise
@@ -9,12 +10,15 @@ import spock.lang.Narrative
 @Stepwise
 @Title('Test home page loads')
 @Narrative('''as dev I want to see this run in browserstack''')
-class HomePageSepc extends BaseSpec {
+class HomePageSpec extends BaseSpec {
 
-  void 'Open the EPIC main page'() {
+  void 'The Welcome modal displays on first visit to EPIC'() {
     given: 'I browse to the main page'
-      // go to homepage
-      to HomePage
+      to WelcomePage
+    expect: 'Verify welcome content'
+      verifyWelcomeContent()
+    when: 'I see and close the welcome splash'
+      clickCloseButton()
     then: 'I am at the home page'
       at HomePage
   }
