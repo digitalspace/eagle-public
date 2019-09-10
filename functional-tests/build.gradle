@@ -5,7 +5,7 @@ plugins {
 
 ext {
 	// todo add IE
-	drivers = ["remoteEdge", "remoteFirefox", "remoteChrome"]
+	drivers = ["remoteEdge", "remoteFirefox", "remoteChrome", "chrome"]
 
 	ext {
 		groovyVersion = '2.5.8'

@@ -14,14 +14,14 @@ import org.openqa.selenium.safari.SafariDriver
 import org.openqa.selenium.remote.DesiredCapabilities
 import org.openqa.selenium.remote.RemoteWebDriver
 import listeners.SessionIdHolder
-//import docgen.DocumentGenerationListener
+
 
 // Allows for setting you baseurl in an environment variable.
 // This is particularly handy for development and the pipeline
 Map env = System.getenv()
 baseUrl = env['BASE_URL']
 if (!baseUrl) {
-  baseUrl = "https://eagle-dev.pathfinder.gov.bc.ca/"
+  baseUrl = "https://eagle-mem-mmti.pathfinder.gov.bc.ca/"
 }
 
 USERNAME = env['BROWSERSTACK_USERNAME']
@@ -80,6 +80,13 @@ environments {
     }
   }
 
+  chrome {
+    driver = {
+      ChromeOptions o = new ChromeOptions()
+      o.addArguments("window-size=1600,900")
+      new ChromeDriver(o);
+    }
+  }
 
   remoteChrome {
     driver = {
@@ -110,6 +117,3 @@ cacheDriver = false
 cacheDriverPerThread = false
 quitCachedDriverOnShutdown = true
 reportOnTestFailureOnly = false
-
-// todo do we need spock?
-// reportsDir = 'build/reports/spock'
