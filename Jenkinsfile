@@ -107,7 +107,7 @@ def nodejsLinter () {
             throw error
           } catch (error) {
             notifyRocketChat(
-              "@The latest deployment, ${env.JOB_BASE_NAME} - ${env.BUILD_DISPLAY_NAME}, of eagle-public to Dev seems to have failed\n Error: \n ${error}",
+              "The build ${env.BUILD_DISPLAY_NAME} of eagle-public, seems to be broken.\n ${env.BUILD_URL} Error: \n ${error.message}",
               ROCKET_DEPLOY_WEBHOOK
             )
           }
