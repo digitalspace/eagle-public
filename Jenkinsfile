@@ -102,8 +102,15 @@ def nodejsLinter () {
           checkout scm
           try {
             // install deps to get angular-cli
-            sh 'npm install @angular/compiler @angular/core @angular/cli @angular-devkit/build-angular codelyzer rxjs tslint'
-            sh 'npm run lint'
+            // sh 'npm install @angular/compiler @angular/core @angular/cli @angular-devkit/build-angular codelyzer rxjs tslint'
+            // sh 'npm run lint'
+            throw error
+          } catch (error) {
+            notifyRocketChat(
+              "@The latest deployment," + ${env.BUILD_TAG} + ", of eagle-public to Dev seems to have failed\n Error: \n ${error}",
+              ROCKET_DEPLOY_WEBHOOK
+            )
+          }
           } finally {
             echo "Linting Passed"
           }
@@ -245,14 +252,14 @@ pipeline {
         //   }
         // }
 
-        // stage('Linting') {
-        //   steps {
-        //     script {
-        //       echo "Running linter"
-        //       def result = nodejsLinter()
-        //     }
-        //   }
-        // }
+        stage('Linting') {
+          steps {
+            script {
+              echo "Running linter"
+              def result = nodejsLinter()
+            }
+          }
+        }
 
         // stage('Sonarqube') {
         //   steps {
