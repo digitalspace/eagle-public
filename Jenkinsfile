@@ -111,9 +111,6 @@ def nodejsLinter () {
               ROCKET_DEPLOY_WEBHOOK
             )
           }
-          } finally {
-            echo "Linting Passed"
-          }
         }
       }
       return true
