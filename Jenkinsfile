@@ -281,19 +281,19 @@ pipeline {
             openshiftVerifyDeployment depCfg: 'eagle-public', namespace: 'mem-mmti-prod', replicaCount: 1, verbose: 'false', verifyReplicaCount: 'false', waitTime: 600000
             echo ">>>> Deployment Complete"
 
-            // notifyRocketChat(
-            //   "@all A new version of eagle-public is now in Dev. \n Changes: \n ${CHANGELOG}",
-            //   ROCKET_DEPLOY_WEBHOOK
-            // )
-            // notifyRocketChat(
-            //   "@all A new version of eagle-public is now in Dev and ready for QA. \n Changes to Dev: \n ${CHANGELOG}",
-            //   ROCKET_QA_WEBHOOK
-            // )
+            notifyRocketChat(
+              "SANDBOX-TEST: A new version of eagle-public is now in Dev, build: ${env.BUILD_DISPLAY_NAME} \n Changes: \n ${CHANGELOG}",
+              ROCKET_DEPLOY_WEBHOOK
+            )
+            notifyRocketChat(
+              "SANDBOX-TEST: A new version of eagle-public is now in Dev and ready for QA. \n Changes to Dev: \n ${CHANGELOG}",
+              ROCKET_QA_WEBHOOK
+            )
           } catch (error) {
-            // notifyRocketChat(
-            //   "@all The latest deployment of eagle-public to Dev seems to have failed\n Error: \n ${error}",
-            //   ROCKET_DEPLOY_WEBHOOK
-            // )
+            notifyRocketChat(
+              "SANDBOX-TEST: The build ${env.BUILD_DISPLAY_NAME} of eagle-public, seems to be broken.\n ${env.BUILD_URL}\n Error: \n ${error.message}",
+              ROCKET_DEPLOY_WEBHOOK
+            )
             currentBuild.result = "FAILURE"
             throw new Exception("Deploy failed")
           }
@@ -316,14 +316,14 @@ pipeline {
       // }
     // }
 
-    stage('BDD Tests') {
-      steps{
-        script {
-          echo "Runnning BDD Tests"
-          echo "Build: ${BUILD_ID}"
-          def result = bddBrowserStack()
-        }
-      }
-    }
+    // stage('BDD Tests') {
+    //   steps{
+    //     script {
+    //       echo "Runnning BDD Tests"
+    //       echo "Build: ${BUILD_ID}"
+    //       def result = bddBrowserStack()
+    //     }
+    //   }
+    // }
   }
 }
