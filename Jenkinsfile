@@ -7,6 +7,7 @@ import groovy.json.JsonSlurper
 def notifyRocketChat(text, url) {
     def rocketChatURL = url
     def textJson = JsonOutput.toJson(text)
+    echo textJson
     def payload = JsonOutput.toJson([
       "username":"Jenkins",
       "icon_url":"https://wiki.jenkins.io/download/attachments/2916393/headshot.png",
