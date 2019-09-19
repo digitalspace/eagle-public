@@ -1,11 +1,6 @@
-def sonarqubePodLabel = "eagle-public-${UUID.randomUUID().toString()}"
-// podTemplate(label: sonarqubePodLabel, name: sonarqubePodLabel, serviceAccount: 'jenkins', cloud: 'openshift', containers: [])
-def zapPodLabel = "eagle-public-owasp-zap-${UUID.randomUUID().toString()}"
-// podTemplate(label: zapPodLabel, name: zapPodLabel, serviceAccount: 'jenkins', cloud: 'openshift', containers: [])
-
-
-@NonCPS
 import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
+
 /*
  * Sends a rocket chat notification
  */
