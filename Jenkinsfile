@@ -1,17 +1,17 @@
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
+import java.util.regex.Pattern
 
 /*
  * Sends a rocket chat notification
  */
 def notifyRocketChat(text, url) {
     def rocketChatURL = url
-    def textJson = JsonOutput.toJson(text)
-    echo textJson
+    def message = text.replaceAll(~/\'/, "")
     def payload = JsonOutput.toJson([
       "username":"Jenkins",
       "icon_url":"https://wiki.jenkins.io/download/attachments/2916393/headshot.png",
-      "text": textJson
+      "text": message
     ])
 
     sh("curl -X POST -H 'Content-Type: application/json' --data \'${payload}\' ${rocketChatURL}")
@@ -50,7 +50,7 @@ def getChangeLog(pastBuilds) {
       def entries = pastBuilds[x].changeSets[i].items
       for (int j = 0; j < entries.length; j++) {
         def entry = entries[j]
-        log += "* ${entry.msg} by ${entry.author} \n"
+        log += " * ${entry.msg} by ${entry.author} \n"
       }
     }
   }
@@ -255,8 +255,8 @@ pipeline {
                 ROCKET_QA_WEBHOOK = sh(returnStdout: true, script: 'cat rocket-qa-webhook')
 
                 echo "Building eagle-public develop branch"
-                openshiftBuild bldCfg: 'eagle-public-angular', showBuildLogs: 'true'
-                openshiftBuild bldCfg: 'eagle-public-build', showBuildLogs: 'true'
+                // openshiftBuild bldCfg: 'eagle-public-angular', showBuildLogs: 'true'
+                // openshiftBuild bldCfg: 'eagle-public-build', showBuildLogs: 'true'
                 echo "Build done"
 
                 echo ">>> Get Image Hash"
@@ -287,23 +287,23 @@ pipeline {
         //   }
         // }
 
-        stage('Linting') {
-          steps {
-            script {
-              echo "Running linter"
-              def result = nodejsLinter()
-            }
-          }
-        }
+        // stage('Linting') {
+        //   steps {
+        //     script {
+        //       echo "Running linter"
+        //       def result = nodejsLinter()
+        //     }
+        //   }
+        // }
 
-        stage('Sonarqube') {
-          steps {
-            script {
-              echo "Running Sonarqube"
-              def result = nodejsSonarqube()
-            }
-          }
-        }
+        // stage('Sonarqube') {
+        //   steps {
+        //     script {
+        //       echo "Running Sonarqube"
+        //       def result = nodejsSonarqube()
+        //     }
+        //   }
+        // }
       }
     }
 
