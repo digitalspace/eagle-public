@@ -104,9 +104,10 @@ def nodejsLinter () {
             // install deps to get angular-cli
             // sh 'npm install @angular/compiler @angular/core @angular/cli @angular-devkit/build-angular codelyzer rxjs tslint'
             // sh 'npm run lint'
+            echo 'linting'
           } catch (error) {
             notifyRocketChat(
-              "The build ${env.BUILD_DISPLAY_NAME} of eagle-public, seems to be broken.\n ${env.BUILD_URL} Error: \n ${error.message}",
+              "SANDBOX-TEST: The build ${env.BUILD_DISPLAY_NAME} of eagle-public, seems to be broken.\n ${env.BUILD_URL} Error: \n ${error.message}",
               ROCKET_DEPLOY_WEBHOOK
             )
           }
