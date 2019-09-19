@@ -6,10 +6,11 @@ import groovy.json.JsonSlurper
  */
 def notifyRocketChat(text, url) {
     def rocketChatURL = url
+    def textJson = JsonOutput.toJson(text)
     def payload = JsonOutput.toJson([
       "username":"Jenkins",
       "icon_url":"https://wiki.jenkins.io/download/attachments/2916393/headshot.png",
-      "text": text
+      "text": textJson
     ])
 
     sh("curl -X POST -H 'Content-Type: application/json' --data \'${payload}\' ${rocketChatURL}")
