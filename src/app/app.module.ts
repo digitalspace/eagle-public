@@ -1,4 +1,4 @@
-import { NgModule, ApplicationRef } from '@angular/core';
+import { NgModule, ApplicationRef, APP_INITIALIZER } from '@angular/core';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { BrowserModule } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
@@ -54,6 +54,11 @@ import { ProjectNotificationDocumentsTableComponent } from './project-notificati
 import { ProjectNotificationDocumentsTableRowsComponent } from './project-notifications/project-notification-documents-table-rows/project-notification-documents-table-rows.component';
 import { ProjectNotificationDocumentsTableDetailsComponent } from './project-notifications/project-notification-documents-table-details/project-notification-documents-table-details.component';
 
+export function initConfig(configService: ConfigService) {
+  return async () => {
+    await configService.init();
+  };
+}
 
 @NgModule({
   imports: [
@@ -105,6 +110,12 @@ import { ProjectNotificationDocumentsTableDetailsComponent } from './project-not
   ],
   providers: [
     ConfigService,
+    {
+      provide: APP_INITIALIZER,
+      useFactory: initConfig,
+      deps: [ConfigService],
+      multi: true
+    },
     CookieService,
     ApiService,
     ProjectService,

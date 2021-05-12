@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import * as L from 'leaflet';
 import { ApiService } from 'app/services/api';
 import { Observable, of } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
 
 //
 // This service/class provides a centralized place to persist config values
@@ -10,7 +11,7 @@ import { Observable, of } from 'rxjs';
 
 @Injectable()
 export class ConfigService {
-
+  private configuration = {};
   // defaults
   private _isApplistListVisible = false;
   private _isApplistFiltersVisible = false;
@@ -21,16 +22,45 @@ export class ConfigService {
   private _baseLayerName = 'World Topographic'; // NB: must match a valid base layer name
   private _mapBounds: L.LatLngBounds = null;
 
-  constructor(private api: ApiService) { }
+  constructor(
+    private api: ApiService,
+    private httpClient: HttpClient
+  ) { }
+  /**
+   * Initialize the Config Service.  Get configuration data from front-end build, or back-end if nginx
+   * is configured to pass the /config endpoint to a dynamic service that returns JSON.
+   */
+  async init() {
+    try {
+      // Attempt to get application via this.httpClient. This uses the url of the application that you are running it from
+      // This will not work for local because it will try and get localhost:4200/api instead of 3000/api...
+      this.configuration = await this.httpClient.get(`api/config`).toPromise();
 
-  // called by app constructor
-  public init() {
-    // FUTURE: load settings from window.localStorage ?
+      console.log('Configuration:', this.configuration);
+      if (this.configuration['debugMode']) {
+        console.log('Configuration:', this.configuration);
+      }
+    } catch (e) {
+      // If all else fails, use variables found in env.js of the application calling config service.
+      this.configuration = window['__env'];
+      console.log('Error getting local configuration:', e);
+      if (this.configuration['debugMode']) {
+        console.log('Configuration:', this.configuration);
+      }
+    }
+    return Promise.resolve();
   }
 
-  // called by app constructor - for future use
-  public destroy() {
-    // FUTURE: save settings to window.localStorage ?
+  get config(): any {
+    return this.configuration;
+  }
+
+  public createConfigData(configData, application, pathAPI: string) {
+    return this.httpClient.post(`${pathAPI}/config/${application}`, configData, {});
+  }
+
+  public editConfigData(configData, configId, application, pathAPI: string) {
+    return this.httpClient.put(`${pathAPI}/config/${application}/${configId}`, configData, {});
   }
 
   get lists(): Observable<any> {
