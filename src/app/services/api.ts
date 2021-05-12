@@ -15,6 +15,7 @@ import { Org } from 'app/models/organization';
 import { Decision } from 'app/models/decision';
 import { User } from 'app/models/user';
 import { Utils } from 'app/shared/utils/utils';
+import { ConfigService } from './config.service';
 
 @Injectable()
 export class ApiService {
@@ -28,7 +29,8 @@ export class ApiService {
 
   constructor(
     private http: HttpClient,
-    private utils: Utils
+    private utils: Utils,
+    private configService: ConfigService
   ) {
     // const currentUser = JSON.parse(window.localStorage.getItem('currentUser'));
     // this.token = currentUser && currentUser.token;
@@ -36,14 +38,15 @@ export class ApiService {
 
     // The following items are loaded by a file that is only present on cluster builds.
     // Locally, this will be empty and local defaults will be used.
-    const remote_api_path = window.localStorage.getItem('from_public_server--remote_api_path');
+    // const remote_api_path = window.localStorage.getItem('from_public_server--remote_api_path');
     const remote_admin_path = window.localStorage.getItem('from_public_server--remote_admin_path');
-    const deployment_env = window.localStorage.getItem('from_public_server--deployment_env');
+    // const deployment_env = window.localStorage.getItem('from_public_server--deployment_env');
     const banner_colour = window.localStorage.getItem('from_public_server--banner_colour');
 
-    this.apiPath = (_.isEmpty(remote_api_path)) ? 'http://localhost:3000/api/public' : remote_api_path;
+    this.apiPath = this.configService.config['API_LOCATION']
+      + this.configService.config['API_PUBLIC_PATH'];
     this.adminUrl = (_.isEmpty(remote_admin_path)) ? 'http://localhost:4200/admin' : remote_admin_path;
-    this.env = (_.isEmpty(deployment_env)) ? 'local' : deployment_env;
+    this.env = this.configService.config['ENVIRONMENT'];
     this.bannerColour = (_.isEmpty(banner_colour)) ? 'red' : banner_colour;
   }
 
@@ -180,7 +183,7 @@ export class ApiService {
   //
   // getProjects(pageNum: number, pageSize: number, sortBy: string, populate: Boolean = true):
 
-   //
+  //
   // Using Search Service Instead
   //
   // getProject(id: string, cpStart: string, cpEnd: string): Observable<Project[]>

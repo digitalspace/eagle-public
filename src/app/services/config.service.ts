@@ -1,8 +1,7 @@
 import { Injectable } from '@angular/core';
 import * as L from 'leaflet';
-import { ApiService } from 'app/services/api';
-import { Observable, of } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
+import { Observable, of } from 'rxjs';
 
 //
 // This service/class provides a centralized place to persist config values
@@ -16,14 +15,13 @@ export class ConfigService {
   private _isApplistListVisible = false;
   private _isApplistFiltersVisible = false;
   private _listPageSize = 10;
-  private _lists = [];
+  // private _lists = [];
 
   // TODO: store these in URL instead
   private _baseLayerName = 'World Topographic'; // NB: must match a valid base layer name
   private _mapBounds: L.LatLngBounds = null;
 
   constructor(
-    private api: ApiService,
     private httpClient: HttpClient
   ) { }
   /**
@@ -63,20 +61,22 @@ export class ConfigService {
     return this.httpClient.put(`${pathAPI}/config/${application}/${configId}`, configData, {});
   }
 
+  // TODO: Get this when we init config.
   get lists(): Observable<any> {
-    if (this._lists.length === 0) {
-      return this.api.getFullDataSet('List')
-        .map(res => {
-          if (res) {
-            this._lists = res[0].searchResults;
-            return this._lists;
-          }
-          return null;
-        })
-        .catch(error => this.api.handleError(error));
-    } else {
-      return of(this._lists);
-    }
+    return of([]);
+    // if (this._lists.length === 0) {
+    //   return this.api.getFullDataSet('List')
+    //     .map(res => {
+    //       if (res) {
+    //         this._lists = res[0].searchResults;
+    //         return this._lists;
+    //       }
+    //       return null;
+    //     })
+    //     .catch(error => this.api.handleError(error));
+    // } else {
+    //   return of(this._lists);
+    // }
   }
 
   get isApplistListVisible(): boolean { return this._isApplistListVisible; }
