@@ -41,13 +41,13 @@ export class ApiService {
     // const remote_api_path = window.localStorage.getItem('from_public_server--remote_api_path');
     const remote_admin_path = window.localStorage.getItem('from_public_server--remote_admin_path');
     // const deployment_env = window.localStorage.getItem('from_public_server--deployment_env');
-    const banner_colour = window.localStorage.getItem('from_public_server--banner_colour');
+    // const banner_colour = window.localStorage.getItem('from_public_server--banner_colour');
 
     this.apiPath = this.configService.config['API_LOCATION']
       + this.configService.config['API_PUBLIC_PATH'];
     this.adminUrl = (_.isEmpty(remote_admin_path)) ? 'http://localhost:4200/admin' : remote_admin_path;
     this.env = this.configService.config['ENVIRONMENT'];
-    this.bannerColour = (_.isEmpty(banner_colour)) ? 'red' : banner_colour;
+    this.bannerColour = this.configService.config['ENVIRONMENT_COLOUR'];
   }
 
   handleError(error: any): Observable<any> {
